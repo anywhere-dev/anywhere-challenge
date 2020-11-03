@@ -1,24 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import {
+  ApolloClient,
+  ApolloProvider,
+  createHttpLink,
+  InMemoryCache,
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import "./App.css";
+import Profile from "./profile";
+
+
+const httpLink = createHttpLink({
+  uri: process.env.REACT_APP_GRAPHQL_URI,
+});
+
+const authLink = setContext((_, { headers }) => {
+  const token = process.env.REACT_APP_GITHUB_TOKEN
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : "",
+    },
+  };
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache()
+});
+
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ApolloProvider client={client}>
+      <div className="App">
+        <header className="App-header">
+          <Profile />
+        </header>
+      </div>
+    </ApolloProvider>
   );
 }
 
